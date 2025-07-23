@@ -1,8 +1,56 @@
 // src/app/page.tsx
+"use client";
 import Image from 'next/image';
-import React from 'react';
+import React, {useEffect, useRef, useState } from 'react';
+
+
+export function useInView(options?: IntersectionObserverInit) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new window.IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      options
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [options]);
+
+  return [ref, inView] as const;
+}
 
 export default function Home() {
+  const [result, setResult] = React.useState<{ prediction: string; confidence: number } | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file){
+    console.error("No file selected.");
+    return;
+  }
+    console.log("Selected file:", file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    console.log("FormData:", formData);
+
+    const response = await fetch("http://127.0.0.1:5000", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+    console.log("Prediction result:", data);
+    setResult(data);
+  }
+
+  function triggerFileInput() {
+    fileInputRef.current?.click();
+  }
+
   return (
     <main className="min-h-screen relative overflow-hidden">
       <div className="fixed inset-0 -z-10">
@@ -25,9 +73,17 @@ export default function Home() {
             <span className="text-xl font-semibold text-green-800">LeafGuard</span>
           </div>
           <div className="hidden md:flex space-x-6">
-            <a href="#" className="text-green-800 hover:text-green-600 hover:transition-all duration-200">Home</a>
-            <a href="#" className="text-gray-600 hover:text-green-600 hover:transition-all duration-200">Tutorial</a>
-            <a href="#" className="text-gray-600 hover:text-green-600 hover:transition-all duration-200">Profile</a>
+            <a href="#" 
+            className="text-gray-600 hover:text-green-600 hover:transition-all duration-200">Home</a>
+            <a href="#features" 
+            className="text-gray-600 hover:text-green-600 hover:transition-all duration-200"
+            onClick={(e)=> {
+              e.preventDefault();
+              document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            >Tutorial</a>
+            <a href="#" 
+            className="text-gray-600 hover:text-green-600 hover:transition-all duration-200">Profile</a>
           </div>
         </div>
       </nav>
@@ -40,30 +96,43 @@ export default function Home() {
               Deteksi Penyakit <br />
               <span className="text-white">Tanaman Lewat Foto!</span>
             </h1>
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+            <p className="text-lg text-gray-300 mb-8 leading-relaxed">
               Upload gambar daun tanamanmu dan biarkan sistem kami menganalisinya
               secara otomatis menggunakan teknologi kecerdasan buatan. Dapatkan hasil
               deteksi penyakit disertai tingkat keyakinan dan saran penanganan yang
               praktis—hanya dalam hitungan detik.
             </p>
-            
-            <button className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors shadow-md">
-              Coba Sekarang
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleUpload}
+              className="hidden"
+              ref={fileInputRef}
+            />
+            <button
+              type="button"
+              onClick={triggerFileInput}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow mb-4"
+            >
+              <UploadIcon className="h-6 w-6" />
+              <span>Upload Foto Daun</span>
             </button>
+            {result && (
+              <div className="bg-white rounded-lg p-4 mt-2 shadow">
+                <p className="text-green-700 font-semibold">Prediction: {result.prediction}</p>
+                <p className="text-gray-700">Confidence: {result.confidence}</p>
+              </div>
+            )}
           </div>
-
           <div className="relative">
             <div>
               <div className="bg-gradient-to-b from-[#437057]/90 to-[#97B067]/50 rounded-xl  aspect-square flex items-center justify-center shadow-2xl">
                 <div className="text-center p-8">
                   <UploadIcon className="mx-auto h-12 w-12 text-green-400 mb-4" />
-                  <p className="text-gray-500">Upload foto daun tanaman Anda</p>
+                  <p className="text-gray-200">Upload foto daun tanaman Anda</p>
                   <p className="text-sm text-gray-400 mt-2">Format: JPG, PNG (max 10MB)</p>
                 </div>
               </div>
-            </div>
-            <div className="absolute -bottom-4 -right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md">
-              AI Siap Menganalisis
             </div>
           </div>
         </div>
@@ -71,33 +140,50 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="max-w-7xl mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              icon: <SpeedIcon className="h-8 w-8 text-green-600" />,
-              title: "Cepat",
-              desc: "Hasil dalam 5 detik"
-            },
-            {
-              icon: <AccuracyIcon className="h-8 w-8 text-green-600" />,
-              title: "Akurat",
-              desc: "Tingkat akurasi hingga 95%"
-            },
-            {
-              icon: <SolutionIcon className="h-8 w-8 text-green-600" />,
-              title: "Solusi Praktis",
-              desc: "Rekomendasi penanganan"
-            }
-          ].map((feature, index) => (
-            <div key={index} className="bg-white p-6 rounded-xl border border-green-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="bg-green-50 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                {feature.icon}
+        <section id="features" className="max-w-7xl mx-auto px-4 py-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6"> Simak Cara Kerjanya</h1>
+          <div className="grid md:grid-cols-3 gap-8 slide-top">
+            {[
+              {
+                image: "/images/photos-tutorial.png",
+                title: "Unggah Foto Daun Tanaman Kamu",
+                desc: "Pastikan file sesuai format ya!"
+              },
+              {
+                icon: <AccuracyIcon className="h-8 w-8 text-green-600" />,
+                title: "Klik COBA SEKARANG ",
+                desc: "Tingkat akurasi hingga 95%"
+              },
+              {
+                icon: <SolutionIcon className="h-8 w-8 text-green-600" />,
+                title: "Hasil Deteksi Anda Akan Muncul",
+                desc: "Mesin akan menampilkan hasil deteksi penyakit tanaman Anda!"
+              }
+            ].map((feature, index) => (
+              <div key={index} className="bg-white p-6 rounded-xl border border-green-100 shadow-sm hover:shadow-md transition-shadow
+              relative overflow-visible">
+                <div className={
+                  "absolute -top-10 left-1/2 -translate-x-1/2 w-40 h-40 z-10 " + 
+                  (index === 0 ? "-translate-x-16" : "")}>
+                  <div className="relative w-full h-full">
+                    {feature.image ? (
+                      <Image
+                        src={feature.image}
+                        alt={feature.title}
+                        fill
+                        className="object-contain drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+                        />
+                    ) : (
+                      feature.image
+                    )}
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                <p className="text-gray-600">{feature.desc}</p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.desc}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
       </section>
     </main>
   );

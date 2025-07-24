@@ -1,14 +1,13 @@
-// src/app/page.tsx
 "use client";
 import Image from 'next/image';
-import React, {useEffect, useRef, useState } from 'react';
+import React, { useState, useRef } from 'react';
 
-
+// Custom Hook for Scroll Into View
 export function useInView(options?: IntersectionObserverInit) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [inView, setInView] = useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!ref.current) return;
     const observer = new window.IntersectionObserver(
       ([entry]) => setInView(entry.isIntersecting),
@@ -25,28 +24,40 @@ export default function Home() {
   const [result, setResult] = React.useState<{ prediction: string; confidence: number } | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
+  // Handle file upload
   async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (!file){
-    console.error("No file selected.");
-    return;
-  }
+    if (!file) {
+      console.error("No file selected.");
+      return;
+    }
     console.log("Selected file:", file);
 
     const formData = new FormData();
     formData.append("file", file);
-    console.log("FormData:", formData);
 
-    const response = await fetch("http://127.0.0.1:5000", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await response.json();
-    console.log("Prediction result:", data);
-    setResult(data);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Prediction result:", data);
+        setResult(data);
+      } else {
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+        alert("Failed to get prediction.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while uploading the file.");
+    }
   }
 
+  // Trigger file input to open file picker
   function triggerFileInput() {
     fileInputRef.current?.click();
   }
@@ -62,9 +73,9 @@ export default function Home() {
           quality={100}
           priority
         />
-        {/* Optional overlay to improve text readability */}
         <div className="absolute inset-0 bg-emerald-900/70"></div>
       </div>
+
       {/* Navigation */}
       <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -126,7 +137,7 @@ export default function Home() {
           </div>
           <div className="relative">
             <div>
-              <div className="bg-gradient-to-b from-[#437057]/90 to-[#97B067]/50 rounded-xl  aspect-square flex items-center justify-center shadow-2xl">
+              <div className="bg-gradient-to-b from-[#437057]/90 to-[#97B067]/50 rounded-xl aspect-square flex items-center justify-center shadow-2xl">
                 <div className="text-center p-8">
                   <UploadIcon className="mx-auto h-12 w-12 text-green-400 mb-4" />
                   <p className="text-gray-200">Upload foto daun tanaman Anda</p>

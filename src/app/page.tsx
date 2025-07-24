@@ -199,14 +199,6 @@ function UploadIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function SpeedIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M13 12l3-3m-6 6l4 4m5-11a9 9 0 11-18 0 9 9 0 0118 0z"/>
-    </svg>
-  );
-}
-
 function AccuracyIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg {...props} viewBox="0 0 24 24" fill="currentColor">

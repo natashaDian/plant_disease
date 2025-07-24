@@ -1,24 +1,6 @@
 "use client";
 import Image from 'next/image';
-import React, { useState, useRef } from 'react';
-
-// Custom Hook for Scroll Into View
-export function useInView(options?: IntersectionObserverInit) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [inView, setInView] = useState(false);
-
-  React.useEffect(() => {
-    if (!ref.current) return;
-    const observer = new window.IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
-      options
-    );
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [options]);
-
-  return [ref, inView] as const;
-}
+import React from 'react';
 
 export default function Home() {
   const [result, setResult] = React.useState<{ prediction: string; confidence: number } | null>(null);

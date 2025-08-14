@@ -1,6 +1,6 @@
 # 🪴 Plant Disease Detection using CNN
 
-## Getting Started
+## Description
 A deep learning project for detecting plant diseases from leaf images using Convolutional Neural Networks (CNN) and **EfficientNetB0** as a pretrained model. This system helps farmers and agricultural stakeholders to identify diseases early and reduce crop loss.
 
 ## Dataset
